@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+# This script is used in case the main bin/da_dev.cr
+# needs to be built.
+# Once that is done, the binary can compile a new
+# binary using: da_dev.cr compile bin
+#
+#
+set -u -e -o pipefail
+cd "$( dirname "$(realpath "$0")" )/.."
+echo "=== in $PWD" >&2
+export SHARDS_INSTALL_PATH="$PWD/.shards/.install"
+export CRYSTAL_PATH="/usr/lib/crystal:$PWD/.shards/.install"
+crystal deps update
+crystal deps prune
+crystal run sh/da_dev.cr -- compile bin
