@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
-# This script is used in case the main bin/da_dev.cr
+# This script is used in case the main bin/da_dev
 # needs to be built.
 # Once that is done, the binary can compile a new
-# binary using: da_dev.cr compile bin
+# binary using: da_dev compile bin
 #
 #
 set -u -e -o pipefail

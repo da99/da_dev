@@ -14,7 +14,7 @@ module DA_Dev
     extend self
 
     def compile?
-      bin = "bin/da_dev.cr"
+      bin = "bin/da_dev"
       current = File.stat(bin).mtime.epoch
       source = File.stat("sh/da_dev.cr").mtime.epoch
       if current < source
