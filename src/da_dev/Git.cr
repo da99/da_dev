@@ -104,8 +104,8 @@ module DA_Dev
         }
       end
 
-      def self.changed?(file_name, epoch)
-        !RECORDS[file_name]? || RECORDS[file_name] != epoch
+      def self.changed?(file_name)
+        !RECORDS[file_name]? || RECORDS[file_name] != File.stat(file_name).mtime.epoch
       end
 
       def self.update_log
@@ -126,7 +126,7 @@ module DA_Dev
         load_changes
         files = [] of String
         ls.each_line { |line|
-          if changed?(line, File.stat(line).mtime.epoch)
+          if changed?(line)
             files.push(line)
           end
         }
