@@ -18,6 +18,9 @@ case
 when full_cmd == "deps"
   DA_Dev.deps
 
+when full_cmd == "check"
+  DA_Dev::Git.development_checkpoint
+
 when full_cmd == "bin compile"
   DA_Dev::Bin.compile
 

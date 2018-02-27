@@ -3,6 +3,11 @@ module DA_Dev
   module Git
     extend self
 
+    def development_checkpoint
+      DA_Process.success! "git add --all"
+      DA_Process.success! "git", ["commit", "-m", "Development Checkpoint"]
+    end
+
     def update
       DA_Process.success! "git add --all"
       DA_Process.success! "git status"
