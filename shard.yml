@@ -5,5 +5,5 @@ development_dependencies:
     github: da99/da_spec.cr
   da_process:
     github: da99/da_process.cr
-  my_git:
-    github: da99/my_git.cr
+  inspect_bang:
+    github: da99/inspect_bang.cr

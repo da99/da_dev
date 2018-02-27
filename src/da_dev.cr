@@ -1,5 +1,6 @@
 
 require "./da_dev/*"
+require "da_process"
 
 module DA_Dev
   extend self
