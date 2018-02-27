@@ -2,7 +2,7 @@ version: 1.0
 shards:
   da_process:
     github: da99/da_process.cr
-    version: 1.2.0
+    version: 1.2.1
 
   da_spec:
     github: da99/da_spec.cr

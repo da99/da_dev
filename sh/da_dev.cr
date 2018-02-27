@@ -30,6 +30,9 @@ when full_cmd == "git status" || full_cmd == "status"
 when full_cmd == "git update" || full_cmd == "update"
   DA_Dev::Git.update
 
+when full_cmd == "specs run"
+  DA_Dev::Specs.run
+
 when ARGV.first? == "__"
   args = ARGV.dup
   args.shift

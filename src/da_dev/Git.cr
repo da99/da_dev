@@ -18,7 +18,7 @@ module DA_Dev
       origin = DA_Process.new("git remote get-url --push --all origin")
       if origin.success?
         origin.output.to_s.each_line { |line|
-          puts Colorize.bold("=== BOLD{{#{line}}}")
+          puts Colorize.bold("=== {{#{line}}}")
         }
       else
         STDERR.puts Colorize.red("!!! {{No origin found}}.")
