@@ -33,6 +33,9 @@ when full_cmd == "git update" || full_cmd == "update"
 when full_cmd == "specs run"
   DA_Dev::Specs.run
 
+when full_cmd == "git zsh_prompt"
+  print(DA_Dev::Git.zsh_prompt || "")
+
 when ARGV.first? == "__"
   args = ARGV.dup
   args.shift
