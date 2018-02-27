@@ -6,23 +6,35 @@ module DA_Dev
     def update
       DA_Process.success! "git add --all"
       DA_Process.success! "git status"
-      get_url_origin
+      puts_url_origin
     end
 
     def status
       DA_Process.success! "git status"
-      get_url_origin
+      puts_url_origin
     end
 
-    def get_url_origin
-      origin = DA_Process.new("git remote get-url --push --all origin")
-      if origin.success?
-        origin.output.to_s.each_line { |line|
-          puts Colorize.bold("=== {{#{line}}}")
-        }
-      else
+    def puts_url_origin
+      origin = DA_Process.new("git remote get-url --all origin")
+      if !origin.success?
         STDERR.puts Colorize.red("!!! {{No origin found}}.")
+        return false
       end
+
+      urls = [] of String
+      origin.output.to_s.each_line { |line|
+        puts Colorize.bold("=== {{#{line}}}")
+        urls << line
+      }
+
+      # Check if origin fetch/push URLs are the same:
+      total = urls.size
+      uniqs = urls.sort.uniq.size
+      if total != uniqs
+        STDERR.puts Colorize.red("!!! {{origin URL mismatch}} !!")
+        return false
+      end
+      true
     end
 
     def current_ref
