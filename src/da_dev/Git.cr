@@ -110,16 +110,19 @@ module DA_Dev
       end
 
       def self.changed?(file_name)
-        !RECORDS[file_name]? || RECORDS[file_name] != File.stat(file_name).mtime.epoch
+        # Check if file exists because it might be busy:
+        sleep 0.2 if !File.exists?(file_name)
+        return true if !File.exists?(file_name)
+
+        current_mtime = File.stat(file_name).mtime.epoch
+        result = !RECORDS[file_name]? || RECORDS[file_name] != current_mtime
+        RECORDS[file_name] = current_mtime
+        result
       end
 
       def self.update_log
-        Dir.mkdir_p(File.dirname(PATH))
         ls.each_line { |line|
           RECORDS[line] = File.stat(line).mtime.epoch
-        }
-        File.open(PATH, "w") { |f|
-          RECORDS.each { |k, v| f.puts "#{k}|#{v}" }
         }
       end
 
@@ -128,7 +131,6 @@ module DA_Dev
       end
 
       def self.changed
-        load_changes
         files = [] of String
         ls.each_line { |line|
           if changed?(line)

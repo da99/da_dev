@@ -3,11 +3,11 @@ module DA_Dev
   module Bin
     extend self
 
-    def compile
+    def compile(args = [] of String)
       name = File.basename(Dir.current)
       bin  = "bin/#{name}"
       tmp  = "tmp/out/#{name}"
-      src  = "sh/#{File.basename name, ".cr"}.cr"
+      src  = "bin/__.cr"
       Dir.mkdir_p "tmp/out"
 
       if File.exists?(bin)
@@ -18,8 +18,10 @@ module DA_Dev
         end
       end
 
-      puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{bin}"
-      DA_Process.success! "crystal build #{src} -o #{tmp}"
+      args = "build #{src} -o #{tmp}".split.concat(args)
+      puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{bin}}}"
+      system("crystal", args)
+      DA_Dev.exit! $?
       File.rename(tmp, bin)
       puts DA_Dev::Colorize.green "=== {{Done}}: #{bin}"
     end

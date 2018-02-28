@@ -12,4 +12,4 @@ export SHARDS_INSTALL_PATH="$PWD/.shards/.install"
 export CRYSTAL_PATH="/usr/lib/crystal:$PWD/.shards/.install"
 crystal deps update
 crystal deps prune
-crystal run sh/da_dev.cr -- compile bin
+crystal run bin/__.cr -- bin compile
