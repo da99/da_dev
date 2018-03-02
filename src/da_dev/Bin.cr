@@ -18,6 +18,9 @@ module DA_Dev
         end
       end
 
+      if args.size == 1 && args.first == "release"
+        args[0] = "--release"
+      end
       is_tmp = args.size == 1 && args.first == "tmp" && args.shift
       args = "build #{src} -o #{tmp}".split.concat(args)
       fin_bin = is_tmp ? tmp : bin

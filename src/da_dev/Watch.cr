@@ -104,13 +104,20 @@ module DA_Dev
     end # === def run_if_changed?
 
     def run_cmd(args : Array(String))
+      this_name = File.basename(Dir.current)
+      args = args.map { |x|
+        (x == "__") ? this_name : x
+      }
+
       orange! "=== {{Running}}: BOLD{{#{args.join " "}}} (#{Time.now.to_s("%r")})"
       cmd = args.shift
       case
       when cmd == "reload" && args.empty?
         reload!(ARGV)
+
       when cmd == "PING" && args.empty?
         green! "=== PONG ==="
+
       else
         system(cmd, args)
         stat = $?
@@ -150,9 +157,7 @@ module DA_Dev
 
         files.each { |x|
           if run_if_changed?(file_run) || run_if_changed?(file_run_once)
-            if changed?(bin_path)
-              reload! ARGV
-            end
+            reload! ARGV if changed?(bin_path)
           end
         }
 
