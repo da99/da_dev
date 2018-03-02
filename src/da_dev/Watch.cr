@@ -45,6 +45,10 @@ module DA_Dev
       }
     end
 
+    def reload
+      File.write(file_run_once, "reload")
+    end
+
     def run(args : Array(String) = [] of String)
       cmd = args.join(' ')
       case
@@ -77,7 +81,7 @@ module DA_Dev
       return false if !is_changed
 
       cmd = (File.exists?(file) ? File.read(file) : "").strip
-      return false if cmd.empty?
+      cmd = "#{PROGRAM_NAME} specs run" if cmd.empty?
 
       cmd.each_line { |line|
         run_cmd line.split
@@ -97,7 +101,6 @@ module DA_Dev
       else
         system(cmd, args)
         stat = $?
-        orange! "=== {{Running}}: BOLD{{#{cmd} #{args.join " "}}}"
         if DA_Process.success?(stat)
           green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
         else

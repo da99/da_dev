@@ -51,6 +51,9 @@ fin = case
       when first_two == "watch run"
         DA_Dev::Watch.run ARGV[2..-1]
 
+      when full_cmd == "watch reload"
+        DA_Dev::Watch.reload
+
       when full_cmd == "watch"
         DA_Dev::Watch.watch
 
