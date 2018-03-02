@@ -5,7 +5,7 @@ module DA_Dev
 
     def development_checkpoint
       DA_Process.success! "git add --all"
-      DA_Process.success! "git", ["commit", "-m", "Development Checkpoint"]
+      DA_Process.success! "git", ["commit", "-m", "Development checkpoint."]
     end
 
     def update

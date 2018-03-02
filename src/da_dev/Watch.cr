@@ -58,6 +58,7 @@ module DA_Dev
     end
 
     def reload!(args : Array(String) = [] of String)
+      orange! "\n\n"
       Process.exec(PROGRAM_NAME, args)
     end
 
