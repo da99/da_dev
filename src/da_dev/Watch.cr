@@ -5,26 +5,16 @@ module DA_Dev
 
     MTIMES = {} of String => Int64
 
-    def run_file_change(file : String)
-      system("clear")
-      bold!("=== Changed: {{#{file}}}")
-      case file
-      when "shard.yml"
-        DA_Dev.deps
-        green! "=== {{DONE}}: deps ==="
-      end
-    end # === def run_file_change
-
     def file_run
-      "tmp/out/file_run"
+      "tmp/out/watch_run"
     end
 
     def file_run_once
-      "tmp/out/file_run_once"
+      "tmp/out/watch_run_once"
     end
 
     def file_run_prev
-      "tmp/out/file_run_prev"
+      "tmp/out/watch_run_prev"
     end # === def file_run_prev
 
     def file_change
@@ -50,6 +40,9 @@ module DA_Dev
     end
 
     def changed?(file : String)
+      # Sometimes it takes a few milliseconds for the file to be available
+      # between saving and writing to the FS.
+      return false if !File.exists?(file)
       MTIMES[file]? != File.stat(file).mtime.epoch
     end
 
@@ -58,24 +51,29 @@ module DA_Dev
     end
 
     def reload!(args : Array(String) = [] of String)
-      orange! "\n\n"
+      orange!("-=" * 30)
       Process.exec(PROGRAM_NAME, args)
     end
 
     def run(args : Array(String) = [] of String)
-      cmd = args.join(' ')
+      full_cmd = args.join(' ')
       case
       when args.empty?
         File.touch(file_run)
-      when cmd == "prev"
+
+      when args.first? == "file-change" && args[1]?
+        File.write(file_change, full_cmd)
+
+      when full_cmd == "prev"
         prev = File.read(file_run_prev) if File.exists?(file_run_prev)
         if prev
           File.write(file_run_once, prev)
         else
           File.touch(file_run)
         end
+
       else
-        File.write(file_run_once, cmd)
+        File.write(file_run_once, full_cmd)
       end
     end # === def run
 
@@ -89,11 +87,15 @@ module DA_Dev
 
     def run_if_changed?(file : String)
       now = Time.now.epoch
+      return false if !changed?(file)
       file_epoch = File.stat(file).mtime.epoch
-      is_changed = (MTIMES[file]? || 0) != file_epoch
-      return false if !is_changed
 
-      cmd = (File.exists?(file) ? File.read(file) : "").strip
+      cmd = begin
+              File.read(file)
+            rescue e : Exception
+              return false
+            end
+
       cmd = "#{PROGRAM_NAME} specs compile run" if cmd.empty?
 
       cmd.each_line { |line|
@@ -113,8 +115,14 @@ module DA_Dev
       orange! "=== {{Running}}: BOLD{{#{args.join " "}}} (#{Time.now.to_s("%r")})"
       cmd = args.shift
       case
+      when cmd == "#"
+        orange! "=== {{Skipping}}: #{cmd} #{args.join " "}"
+
       when cmd == "reload" && args.empty?
         reload!(ARGV)
+
+      when cmd == "file-change" && !args.empty?
+        DA_Dev::Dev.file_change args.first
 
       when cmd == "PING" && args.empty?
         green! "=== PONG ==="
@@ -144,7 +152,8 @@ module DA_Dev
         bin_path,
         file_run,
         file_run_once,
-        file_run_prev
+        file_run_prev,
+        file_change
       }
 
       files.each { |x|
@@ -153,13 +162,15 @@ module DA_Dev
       }
 
       orange!("=== {{Watching}}...")
+      is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
+
       while keep_running
         sleep 0.8
 
         files.each { |x|
-          if run_if_changed?(file_run) || run_if_changed?(file_run_once)
-            reload! ARGV if changed?(bin_path)
-          end
+          run_if_changed?(file_run)
+          run_if_changed?(file_run_once)
+          run_if_changed?(file_change)
         }
 
       end

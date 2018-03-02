@@ -16,6 +16,11 @@ fin = case
       when full_cmd == "deps"
         DA_Dev.deps
 
+      when ARGV[0]? == "file-change"
+        ARGV[1..-1].each { |x|
+          DA_Dev::Dev.file_change(x)
+        }
+
       when full_cmd == "check"
         DA_Dev::Git.development_checkpoint
 

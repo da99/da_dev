@@ -11,13 +11,6 @@ module DA_Dev
     DA_Process.success! "crystal deps prune"
   end # === def deps
 
-  def self.file_change(file_name : String)
-    case
-    when file_name == "shard.yml"
-      deps
-    end
-  end # === def file_change
-
   def bold!(str : String)
     puts Colorize.bold(str)
   end

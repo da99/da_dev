@@ -12,6 +12,25 @@ module DA_Dev
       "tmp/out/dev"
     end
 
+    def file_change(file_name : String)
+      unknown_file = true
+      case
+      when file_name == "shard.yml"
+        unknown_file = false
+        DA_Dev.deps
+        green! "=== {{DONE}}: deps ==="
+      end
+
+      app_name = File.basename(Dir.current)
+      if File.exists?("tmp/out/dev")
+        system("tmp/out/dev", ["file-change", file_name])
+      else
+        if unknown_file
+          orange! "=== {{Unknown file type}}: BOLD{{#{file_name}}}"
+        end
+      end
+    end # === def file_change
+
     def compile
       if !File.exists?(src)
         STDERR.puts Colorize.red("!!! {{Not found}}: BOLD{{#{src}}}")
