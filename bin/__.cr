@@ -84,7 +84,7 @@ fin = case
         end
 
       else
-        red! "!!! Invalid arguments: #{ARGV.inspect}"
+        red! "!!! Invalid arguments: #{ARGV.map(&.inspect).join " "}"
         exit 1
       end
 

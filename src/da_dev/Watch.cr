@@ -45,8 +45,20 @@ module DA_Dev
       }
     end
 
+    private def bin_path
+      File.expand_path File.join(__DIR__, "/../../bin/da_dev")
+    end
+
+    def changed?(file : String)
+      MTIMES[file]? != File.stat(file).mtime.epoch
+    end
+
     def reload
       File.write(file_run_once, "reload")
+    end
+
+    def reload!(args : Array(String) = [] of String)
+      Process.exec(PROGRAM_NAME, args)
     end
 
     def run(args : Array(String) = [] of String)
@@ -57,7 +69,7 @@ module DA_Dev
       when cmd == "prev"
         prev = File.read(file_run_prev) if File.exists?(file_run_prev)
         if prev
-          File.write(file_run_prev, prev)
+          File.write(file_run_once, prev)
         else
           File.touch(file_run)
         end
@@ -81,13 +93,14 @@ module DA_Dev
       return false if !is_changed
 
       cmd = (File.exists?(file) ? File.read(file) : "").strip
-      cmd = "#{PROGRAM_NAME} specs run" if cmd.empty?
+      cmd = "#{PROGRAM_NAME} specs compile run" if cmd.empty?
 
       cmd.each_line { |line|
         run_cmd line.split
       }
       File.write(file_run_prev, cmd)
       MTIMES[file] = file_epoch
+      true
     end # === def run_if_changed?
 
     def run_cmd(args : Array(String))
@@ -95,7 +108,7 @@ module DA_Dev
       cmd = args.shift
       case
       when cmd == "reload" && args.empty?
-        Process.exec(PROGRAM_NAME, ARGV)
+        reload!(ARGV)
       when cmd == "PING" && args.empty?
         green! "=== PONG ==="
       else
@@ -120,6 +133,7 @@ module DA_Dev
 
       Dir.mkdir_p("tmp/out")
       files = {
+        bin_path,
         file_run,
         file_run_once,
         file_run_prev
@@ -135,8 +149,11 @@ module DA_Dev
         sleep 0.8
 
         files.each { |x|
-          next if x == file_run_prev
-          run_if_changed? x
+          if run_if_changed?(file_run) || run_if_changed?(file_run_once)
+            if changed?(bin_path)
+              reload! ARGV
+            end
+          end
         }
 
       end
