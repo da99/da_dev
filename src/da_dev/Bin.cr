@@ -18,11 +18,13 @@ module DA_Dev
         end
       end
 
+      is_tmp = args.size == 1 && args.first == "tmp" && args.shift
       args = "build #{src} -o #{tmp}".split.concat(args)
-      puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{bin}}}"
+      fin_bin = is_tmp ? tmp : bin
+      puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{fin_bin}}}"
       system("crystal", args)
       DA_Dev.exit! $?
-      File.rename(tmp, bin)
+      File.rename(tmp, bin) unless is_tmp
       puts DA_Dev::Colorize.green "=== {{Done}}: #{bin}"
     end
 

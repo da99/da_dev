@@ -121,8 +121,9 @@ module DA_Dev
       end
 
       def self.update_log
-        ls.each_line { |line|
-          RECORDS[line] = File.stat(line).mtime.epoch
+        %w[shard.yml].each { |file|
+          next if ! File.exists?(file)
+          RECORDS[file] = File.stat(file).mtime.epoch
         }
       end
 
