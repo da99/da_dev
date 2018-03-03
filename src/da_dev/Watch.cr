@@ -4,6 +4,7 @@ module DA_Dev
     extend self
 
     MTIMES = {} of String => Int64
+    PROCESSES = [] of DA_Process
 
     def file_run
       "tmp/out/watch_run"
@@ -13,26 +14,8 @@ module DA_Dev
       "tmp/out/watch_run_once"
     end
 
-    def file_run_prev
-      "tmp/out/watch_run_prev"
-    end # === def file_run_prev
-
-    def file_change
-      "tmp/out/file_change"
-    end
-
-    def file_change(x : String)
-      file_change([x])
-    end # === def file_change
-
-    def file_change(files : Array(String))
-      file = "tmp/out/file_change"
-      return false if !Dir.exists?(File.dirname file)
-      File.open(file, "a") { |f|
-        files.each { |x|
-          f.puts x.strip
-        }
-      }
+    def file_change(args : Array(String) = [] of String)
+      File.write(file_run_once, args.join(' '))
     end
 
     private def bin_path
@@ -46,63 +29,39 @@ module DA_Dev
       MTIMES[file]? != File.stat(file).mtime.epoch
     end
 
-    def reload
-      File.write(file_run_once, "reload")
-    end
-
     def reload!(args : Array(String) = [] of String)
       orange!("-=" * 30)
-      Process.exec(PROGRAM_NAME, args)
+      Process.exec(bin_path, args)
+    end
+
+    def run_once(args : Array(String))
+      File.write(file_run_once, args.join(" "))
     end
 
     def run(args : Array(String) = [] of String)
-      full_cmd = args.join(' ')
       case
       when args.empty?
         File.touch(file_run)
-
-      when args.first? == "file-change" && args[1]?
-        File.write(file_change, full_cmd)
-
-      when full_cmd == "prev"
-        prev = File.read(file_run_prev) if File.exists?(file_run_prev)
-        if prev
-          File.write(file_run_once, prev)
-        else
-          File.touch(file_run)
-        end
-
       else
-        File.write(file_run_once, full_cmd)
+        File.write(file_run, args.join(' '))
       end
     end # === def run
 
-    def run_prev
-      File.touch file_run_prev
-    end
-
-    def run_once
-      File.touch file_run_once
-    end
-
     def run_if_changed?(file : String)
-      now = Time.now.epoch
       return false if !changed?(file)
-      file_epoch = File.stat(file).mtime.epoch
 
+      orange! "=== {{Running}}: #{file} ==="
       cmd = begin
-              File.read(file)
-            rescue e : Exception
-              return false
+              str = File.read(file).strip
+              if str.empty?
+                "#{bin_path} specs compile run"
+              else
+                str
+              end
             end
 
-      cmd = "#{PROGRAM_NAME} specs compile run" if cmd.empty?
-
-      cmd.each_line { |line|
-        run_cmd line.split
-      }
-      File.write(file_run_prev, cmd)
-      MTIMES[file] = file_epoch
+      run_cmd cmd.split
+      MTIMES[file] = File.stat(file).mtime.epoch
       true
     end # === def run_if_changed?
 
@@ -120,9 +79,6 @@ module DA_Dev
 
       when cmd == "reload" && args.empty?
         reload!(ARGV)
-
-      when cmd == "file-change" && !args.empty?
-        DA_Dev::Dev.file_change args.first
 
       when cmd == "PING" && args.empty?
         green! "=== PONG ==="
@@ -148,12 +104,10 @@ module DA_Dev
       end
 
       Dir.mkdir_p("tmp/out")
+
       files = {
-        bin_path,
         file_run,
         file_run_once,
-        file_run_prev,
-        file_change
       }
 
       files.each { |x|
@@ -165,14 +119,11 @@ module DA_Dev
       is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
 
       while keep_running
-        sleep 0.8
+        sleep 0.6
 
         files.each { |x|
-          run_if_changed?(file_run)
-          run_if_changed?(file_run_once)
-          run_if_changed?(file_change)
+          run_if_changed?(x)
         }
-
       end
     end
 

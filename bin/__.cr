@@ -16,9 +16,9 @@ fin = case
       when full_cmd == "deps"
         DA_Dev.deps
 
-      when ARGV[0]? == "file-change"
+      when ARGV[0]? == "compile"
         ARGV[1..-1].each { |x|
-          DA_Dev::Dev.file_change(x)
+          DA_Dev::Dev.compile(x)
         }
 
       when full_cmd == "check"
@@ -53,14 +53,17 @@ fin = case
       when full_cmd == "git zsh_prompt"
         print(DA_Dev::Git.zsh_prompt || "")
 
-      when first_two == "watch run"
-        DA_Dev::Watch.run ARGV[2..-1]
-
-      when full_cmd == "watch reload"
-        DA_Dev::Watch.reload
-
       when full_cmd == "watch"
         DA_Dev::Watch.watch
+
+      when first_two == "watch run-once" && ARGV.size > 2
+        DA_Dev::Watch.run_once(ARGV[2..-1])
+
+      when first_two == "watch run" && ARGV.size > 2
+        DA_Dev::Watch.run ARGV[2..-1]
+
+      when full_cmd == "watch run"
+        DA_Dev::Watch.run
 
       when ARGV.first? == "__"
         system("crystal", ARGV[1..-1])
