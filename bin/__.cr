@@ -56,11 +56,11 @@ fin = case
       when full_cmd == "watch"
         DA_Dev::Watch.watch
 
-      when first_two == "watch run-once" && ARGV.size > 2
-        DA_Dev::Watch.run_once(ARGV[2..-1])
-
       when first_two == "watch run" && ARGV.size > 2
         DA_Dev::Watch.run ARGV[2..-1]
+
+      when first_two == "watch run-once" && ARGV.size > 2
+        DA_Dev::Watch.run_once(ARGV[2..-1])
 
       when full_cmd == "watch run"
         DA_Dev::Watch.run
