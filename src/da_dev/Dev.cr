@@ -24,6 +24,8 @@ module DA_Dev
       stat = $?
       if DA_Process.success?(stat)
         green!("=== {{DONE}}: #{tmp} ===")
+      else
+        exit! stat
       end
       stat
     end # === def compile
@@ -34,7 +36,6 @@ module DA_Dev
       when file_name == "shard.yml"
         unknown_file = false
         DA_Dev.deps
-        green! "=== {{DONE}}: deps ==="
       end
 
       app_name = File.basename(Dir.current)

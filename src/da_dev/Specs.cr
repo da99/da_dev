@@ -18,7 +18,9 @@ module DA_Dev
       system("crystal", "build #{src} -o tmp/out/specs".split)
       stat = $?
       if DA_Process.success?(stat)
-        puts Colorize.green "=== {{DONE}}: compiling specs ==="
+        green! "=== {{DONE}}: compiling specs ==="
+      else
+        exit! stat
       end
       stat
     end
@@ -30,8 +32,8 @@ module DA_Dev
 
       system(tmp, args)
       stat = $?
-      if DA_Process.success?(stat)
-        green! "=== {{DONE}}: specs run ==="
+      if !DA_Process.success?(stat)
+        exit! stat
       end
       stat
     end # === def run

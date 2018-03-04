@@ -1,10 +1,13 @@
 ---
 name: da_dev
 version: 0.1.0
+dependencies:
+  da_process:
+    github: da99/da_process.cr
+  da_redis:
+    github: da99/da_redis.cr
 development_dependencies:
   da_spec:
     github: da99/da_spec.cr
-  da_process:
-    github: da99/da_process.cr
   inspect_bang:
     github: da99/inspect_bang.cr

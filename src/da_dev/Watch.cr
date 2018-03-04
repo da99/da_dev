@@ -41,27 +41,42 @@ module DA_Dev
     MTIMES    = {} of String => Int64
     PROCESSES = Deque(Proc).new
 
-    def file_run
-      "tmp/out/watch_run"
+    def key
+      "da_dev.run.cmd"
     end
 
-    def file_run_once
-      "tmp/out/watch_run_once"
+    def key_once
+      "da_dev.run-once.cmd"
     end
 
-    def file_change(args : Array(String) = [] of String)
-      File.write(file_run_once, args.join(' '))
+    def key_prev
+      "da_dev.run-prev.cmd"
+    end
+
+    def default_cmd
+      "#{bin_path} specs compile run".split
+    end
+
+    def shift(key : String) : String?
+      DA_Redis.connect { |r|
+        v = r.send("RPOP", key)
+        case v
+        when String
+          v
+        else
+          nil
+        end
+      }
+    end # === def shift
+
+    def push(key : String, cmd : String)
+      DA_Redis.connect { |r|
+        r.send("LPUSH", key, cmd)
+      }
     end
 
     private def bin_path
       File.expand_path File.join(__DIR__, "/../../bin/da_dev")
-    end
-
-    def changed?(file : String)
-      # Sometimes it takes a few milliseconds for the file to be available
-      # between saving and writing to the FS.
-      return false if !File.exists?(file)
-      MTIMES[file]? != File.stat(file).mtime.epoch
     end
 
     def reload!(args : Array(String) = [] of String)
@@ -76,39 +91,34 @@ module DA_Dev
       Process.exec(bin_path, args)
     end
 
+    def set_prev(cmd : String)
+      DA_Redis.connect { |r| r.send("SET", key_prev, cmd) }
+    end
+
+    def get_prev_cmd : Array(String)?
+      DA_Redis.connect { |r|
+        v = r.send("GET", key_prev)
+        case v
+        when String
+          return v.split
+        else
+          return nil
+        end
+      }
+    end
+
     def run_once(args : Array(String))
-      File.write(file_run_once, args.join(" "))
+      push(key_once, args.join(' '))
     end
 
     def run(args : Array(String) = [] of String)
       case
       when args.empty?
-        File.touch(file_run)
+        run(get_prev_cmd || default_cmd)
       else
-        File.write(file_run, args.join(' '))
+        push(key, args.join(' '))
       end
     end # === def run
-
-    def run_if_changed?(file : String)
-      return false if !changed?(file)
-
-      orange! "=== {{Running}}: #{file} ==="
-      cmd = begin
-              str = File.read(file).strip
-              if str.empty?
-                "#{bin_path} specs compile run"
-              else
-                str
-              end
-            end
-
-      cmd.each_line { |x|
-        next if x.strip.empty?
-        break if !(run_cmd x.split)
-      }
-      MTIMES[file] = File.stat(file).mtime.epoch
-      true
-    end # === def run_if_changed?
 
     def run_process(args : Array(String))
       orange! "=== {{Running proc}}: BOLD{{#{args.join(" ")}}}"
@@ -117,7 +127,17 @@ module DA_Dev
       x
     end # === def run_process
 
+    def run_if?(key : String)
+      cmd = shift(key)
+      return false if !cmd
+      if key == self.key
+        set_prev(cmd)
+      end
+      run_cmd(cmd.split)
+    end # === def run_if?
+
     def run_cmd(args : Array(String))
+      orange! "=== {{Running}}: #{args.join ' '} ==="
       this_name = File.basename(Dir.current)
       args = args.map { |x|
         (x == "__") ? this_name : x
@@ -127,6 +147,15 @@ module DA_Dev
       case
       when cmd == "#"
         orange! "=== {{Skipping}}: #{cmd} #{args.join " "}"
+
+      when cmd == "file" && args.size == 1
+        content = File.read(args.first) if File.exists?(args.first)
+        if content
+          content.strip.each_line { |x|
+            next if x.strip.empty?
+            run_cmd(x.split)
+          }
+        end
 
       when cmd == "reload" && args.empty?
         reload!(ARGV)
@@ -175,25 +204,14 @@ module DA_Dev
 
       Dir.mkdir_p("tmp/out")
 
-      files = {
-        file_run,
-        file_run_once,
-      }
-
-      files.each { |x|
-        File.touch(x)
-        MTIMES[x] = File.stat(x).mtime.epoch
-      }
-
       orange!("=== {{Watching}}...")
       is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
 
       while keep_running
-        sleep 0.6
+        sleep 0.1
 
-        files.each { |x|
-          run_if_changed?(x)
-        }
+        run_if?(key)
+        run_if?(key_once)
 
         PROCESSES.each { |x|
           run_process_status(x)
