@@ -57,13 +57,16 @@ fin = case
         DA_Dev::Watch.watch
 
       when first_two == "watch run" && ARGV.size > 2
-        DA_Dev::Watch.run ARGV[2..-1]
+        DA_Dev::Watch.run(ARGV[2..-1])
 
-      when first_two == "watch run-once" && ARGV.size > 2
-        DA_Dev::Watch.run_once(ARGV[2..-1])
+      when full_cmd == "watch run-last-file"
+        DA_Dev::Watch.run_last_file
 
-      when full_cmd == "watch run"
-        DA_Dev::Watch.run
+      when first_two == "watch run-file" && ARGV.size == 3
+        DA_Dev::Watch.run_file(ARGV[2])
+
+      when full_cmd == "watch reload"
+        DA_Dev::Watch.reload
 
       when ARGV.first? == "__"
         system("crystal", ARGV[1..-1])

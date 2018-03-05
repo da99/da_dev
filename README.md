@@ -13,13 +13,13 @@ Reference & Intro:
   da_dev compile file.name.ext
 
   da_dev watch
+  da_dev watch reload
 
-  da_dev watch run # defaults to: da_dev specs compile run
-  da_dev watch run reload
+  da_dev watch run-file myfile.1.txt
+  da_dev watch run-file myfile.2.txt
+
+  da_dev watch run-last-file
+
   da_dev watch run my_cmd with -args
   da_dev watch run __ with -args
-
-  da_dev watch run-once reload
-  da_dev watch run-once my_cmd with -args
-  da_dev watch run-once __ with -args
 ```

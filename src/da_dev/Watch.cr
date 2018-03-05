@@ -41,20 +41,40 @@ module DA_Dev
     MTIMES    = {} of String => Int64
     PROCESSES = Deque(Proc).new
 
+    def time
+      Time.now.to_s("%r")
+    end
+
+    def key(name)
+      "#{app_name}.da_dev.watch.#{name}"
+    end
+
     def key
-      "da_dev.run.cmd"
+      key("run.cmd")
     end
 
-    def key_once
-      "da_dev.run-once.cmd"
+    def tmp_out_da_dev_run
+      "tmp/out/da_dev_run"
     end
 
-    def key_prev
-      "da_dev.run-prev.cmd"
+    def tmp_out_da_dev_run_save
+      "tmp/out/da_dev_run_save"
     end
 
     def default_cmd
       "#{bin_path} specs compile run".split
+    end
+
+    def set(key : String, val : String)
+      DA_Redis.connect { |r| r.send("SET", key, val) }
+    end
+
+    def get(key)
+      DA_Redis.connect { |r| r.send("GET", key) }
+    end
+
+    def shift
+      shift(key)
     end
 
     def shift(key : String) : String?
@@ -75,108 +95,129 @@ module DA_Dev
       }
     end
 
+    def push(key : String, cmd : Array(String))
+      push(key, cmd.join(' '))
+    end
+
+    def push(cmd : String)
+      push(key, cmd)
+    end
+
+    def push(cmd : Array(String))
+      push(key, cmd)
+    end
+
+    def push_error(cmd : String)
+      red! cmd
+      push(key("error"), cmd)
+    end
+
     private def bin_path
       File.expand_path File.join(__DIR__, "/../../bin/da_dev")
     end
 
-    def reload!(args : Array(String) = [] of String)
-      orange!("-=" * 30)
-      PROCESSES.each { |x|
-        run_process_status(x)
-        next if x.ended?
-        orange! "=== {{Killing}}: #{x.full_cmd}"
-        x.kill
-        run_process_status(x)
-      }
-      Process.exec(bin_path, args)
-    end
+    def reload
+      push("reload")
+    end # === def reload
 
-    def set_prev(cmd : String)
-      DA_Redis.connect { |r| r.send("SET", key_prev, cmd) }
-    end
-
-    def get_prev_cmd : Array(String)?
-      DA_Redis.connect { |r|
-        v = r.send("GET", key_prev)
-        case v
-        when String
-          return v.split
-        else
-          return nil
-        end
-      }
-    end
-
-    def run_once(args : Array(String))
-      push(key_once, args.join(' '))
-    end
-
-    def run(args : Array(String) = [] of String)
-      case
-      when args.empty?
-        run(get_prev_cmd || default_cmd)
-      else
-        push(key, args.join(' '))
+    def run(args : Array(String))
+      if args.empty?
+        push_error("!!! No arguments for: run")
+        exit 1
       end
-    end # === def run
+      push(["run"].concat args)
+    end
+
+    def run_last_file
+      last_file = (get(key("last.file")) || "tmp/out/da_dev_run_1").to_s
+      if File.exists?(last_file)
+        run_file last_file
+      else
+        push_error("!!! {{File not found}}: #{last_file.inspect} !!!")
+        exit 1
+      end
+    end # === def run_last_file
+
+    def run_file(file_name : String)
+      content = begin
+                  File.read(file_name).strip
+                rescue e : Errno
+                  ""
+                end
+
+      if content.empty?
+        push_error "=== {{File not found}}: BOLD{{#{file_name}}}"
+        exit
+      end
+
+      set(key("last.file"), file_name)
+      content.each_line { |x|
+        args = x.strip.split
+        next if args.empty?
+        push(["run"].concat args)
+      }
+    end
 
     def run_process(args : Array(String))
-      orange! "=== {{Running proc}}: BOLD{{#{args.join(" ")}}}"
-      x = Proc.new(args)
-      PROCESSES.push x
-      x
-    end # === def run_process
+      push(["proc"].concat args)
+    end
 
-    def run_if?(key : String)
-      cmd = shift(key)
-      return false if !cmd
-      if key == self.key
-        set_prev(cmd)
-      end
-      run_cmd(cmd.split)
-    end # === def run_if?
+    def app_name
+      File.basename(Dir.current)
+    end
 
     def run_cmd(args : Array(String))
-      orange! "=== {{Running}}: #{args.join ' '} ==="
-      this_name = File.basename(Dir.current)
       args = args.map { |x|
-        (x == "__") ? this_name : x
+        (x == "__") ? app_name : x
       }
 
       cmd = args.shift
       case
+      when cmd == "clear" && args.empty?
+        system("clear")
+
+      when cmd == "reset" && args.empty?
+        system("reset")
+
       when cmd == "#"
         orange! "=== {{Skipping}}: #{cmd} #{args.join " "}"
 
-      when cmd == "file" && args.size == 1
-        content = File.read(args.first) if File.exists?(args.first)
-        if content
-          content.strip.each_line { |x|
-            next if x.strip.empty?
-            run_cmd(x.split)
-          }
-        end
-
       when cmd == "reload" && args.empty?
-        reload!(ARGV)
+        PROCESSES.each { |x|
+          run_process_status(x)
+          next if x.ended?
+          orange! "=== {{Killing}}: #{x.full_cmd}"
+          x.kill
+          run_process_status(x)
+        }
+        Process.exec(bin_path, ARGV)
 
       when cmd == "proc"
-        run_process(args)
+        orange! "=== {{Running proc}}: BOLD{{#{args.join(" ")}}}"
+        x = Proc.new(args)
+        PROCESSES.push x
+        x
 
       when cmd == "PING" && args.empty?
+        orange! "=== {{Running}}: #{cmd} ==="
         green! "=== PONG ==="
 
-      else
-        orange! "=== {{Running}}: BOLD{{#{cmd} #{args.join " "}}} (#{Time.now.to_s("%r")})"
+      when cmd == "run" && !args.empty?
+        orange! "=== {{Running}}: BOLD{{#{args.join " "}}} (#{time})"
+        cmd = args.shift
         system(cmd, args)
         stat = $?
-        if DA_Process.success?(stat)
-          green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
+          if DA_Process.success?(stat)
+            green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
         else
           red! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
           return false
         end
-      end
+
+      else
+        red! "=== {{Unknown command}}: BOLD{{#{cmd} #{args.join(' ')}}} ==="
+
+      end # case
       true
     end # === def run
 
@@ -196,6 +237,12 @@ module DA_Dev
     end # === def run_process_status
 
     def watch
+      system("reset")
+      DA_Redis.connect { |r|
+        r.send("DEL", key)
+        r.send("DEL", key("error"))
+      }
+
       keep_running = true
       Signal::INT.trap do
         keep_running = false
@@ -204,14 +251,22 @@ module DA_Dev
 
       Dir.mkdir_p("tmp/out")
 
-      orange!("=== {{Watching}}...")
+      green!("-=-= BOLD{{Watching}} @ #{time} #{"-=" * 23}")
       is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
 
       while keep_running
         sleep 0.1
 
-        run_if?(key)
-        run_if?(key_once)
+        e = shift(key("error"))
+        while e
+          red! e
+          e = shift(key("error"))
+        end
+
+        cmd = shift
+        if cmd
+          run_cmd(cmd.split)
+        end
 
         PROCESSES.each { |x|
           run_process_status(x)
