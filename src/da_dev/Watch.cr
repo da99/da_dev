@@ -45,6 +45,10 @@ module DA_Dev
       Time.now.to_s("%r")
     end
 
+    def pid_file
+      "tmp/out/watch_pid"
+    end
+
     def key(name)
       "#{app_name}.da_dev.watch.#{name}"
     end
@@ -151,11 +155,7 @@ module DA_Dev
       end
 
       set(key("last.file"), file_name)
-      content.each_line { |x|
-        args = x.strip.split
-        next if args.empty?
-        push(["run"].concat args)
-      }
+      push(["run-file", file_name])
     end
 
     def run_process(args : Array(String))
@@ -173,6 +173,28 @@ module DA_Dev
 
       cmd = args.shift
       case
+      when cmd == "run-file" && args.size == 1
+        file = args.shift
+        begin
+          last_result = true
+          File.read(file).strip.each_line { |l|
+            next if l.strip.empty?
+            args = l.split
+            if args.first? == "#"
+              orange! "=== {{#{args.join " "}}}"
+              next
+            end
+            if last_result
+              last_result = run_cmd(["run"].concat args)
+            else
+              red! "!!! {{Skipping}}: #{args.join ' '}"
+            end
+          }
+        rescue e : Errno
+          red! "!!! {{File not found}}: BOLD{{#{file}}}"
+          return false
+        end
+
       when cmd == "clear" && args.empty?
         system("clear")
 
@@ -190,6 +212,7 @@ module DA_Dev
           x.kill
           run_process_status(x)
         }
+        File.delete(pid_file) if File.exists?(pid_file)
         Process.exec(bin_path, ARGV)
 
       when cmd == "proc"
@@ -203,12 +226,12 @@ module DA_Dev
         green! "=== PONG ==="
 
       when cmd == "run" && !args.empty?
-        orange! "=== {{Running}}: BOLD{{#{args.join " "}}} (#{time})"
+        bold! "=== {{#{args.join " "}}} (#{time})"
         cmd = args.shift
         system(cmd, args)
         stat = $?
-          if DA_Process.success?(stat)
-            green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
+        if DA_Process.success?(stat)
+          green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
         else
           red! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
           return false
@@ -237,6 +260,18 @@ module DA_Dev
     end # === def run_process_status
 
     def watch
+      this_pid = Process.pid
+      begin
+        old = File.read(pid_file).strip
+        if !old.empty? && Process.exists?(old.to_i)
+          red! "!!! {{Already running}}: pid BOLD{{#{old}}}"
+          exit 1
+        end
+      rescue e : Errno
+      end
+
+      File.write(pid_file, this_pid)
+
       system("reset")
       DA_Redis.connect { |r|
         r.send("DEL", key)
@@ -257,16 +292,12 @@ module DA_Dev
       while keep_running
         sleep 0.1
 
-        e = shift(key("error"))
-        while e
+        while e = shift(key("error"))
           red! e
-          e = shift(key("error"))
         end
 
         cmd = shift
-        if cmd
-          run_cmd(cmd.split)
-        end
+        run_cmd(cmd.split) if cmd
 
         PROCESSES.each { |x|
           run_process_status(x)
