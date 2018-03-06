@@ -24,6 +24,9 @@ fin = case
       when full_cmd == "check"
         DA_Dev::Git.development_checkpoint
 
+      when full_cmd === "backup"
+        DA_Dev::Backup.dir
+
       when first_two == "dev compile"
         DA_Dev::Dev.compile
 
