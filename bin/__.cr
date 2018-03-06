@@ -62,6 +62,9 @@ fin = case
       when full_cmd == "watch run-last-file"
         DA_Dev::Watch.run_last_file
 
+      when first_two == "watch run-process" && ARGV.size > 2
+        DA_Dev::Watch.run_process(ARGV[2..-1])
+
       when first_two == "watch run-file" && ARGV.size == 3
         DA_Dev::Watch.run_file(ARGV[2])
 

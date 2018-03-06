@@ -1,40 +1,6 @@
 
 module DA_Dev
   module Watch
-    class Proc
-
-      getter process  : Process
-      getter full_cmd : String
-      delegate :terminated?, to: @process
-      delegate :exit_signal, :exit_code, to: status
-      delegate :signal_exit?, to: status
-
-      def initialize(cmd_args : Array(String))
-        @full_cmd = cmd_args.join(" ")
-        cmd = cmd_args.shift
-        args = cmd_args
-        @process = Process.new(cmd, args, output: STDOUT, error: STDERR)
-        @is_ended = false
-      end # === def initialize
-
-      def status
-        process.wait
-      end
-
-      def kill
-        @process.kill unless terminated?
-        @process.wait
-      end
-
-      def mark_as_ended
-        @is_ended = terminated?
-      end
-
-      def ended?
-        @is_ended
-      end
-
-    end # === struct Proc
 
     extend self
 
@@ -216,7 +182,7 @@ module DA_Dev
         Process.exec(bin_path, ARGV)
 
       when cmd == "proc"
-        orange! "=== {{Running proc}}: BOLD{{#{args.join(" ")}}}"
+        orange! "=== {{Process}}: BOLD{{#{args.join(" ")}}}"
         x = Proc.new(args)
         PROCESSES.push x
         x
@@ -249,7 +215,7 @@ module DA_Dev
 
       x.mark_as_ended
 
-      msg = "=== {{Process done}}: BOLD{{exit #{x.exit_code}#{x.signal_exit? ? ", #{x.exit_signal}" : ""}}} (#{x.full_cmd})"
+      msg = "=== {{Process}}: BOLD{{exit #{x.exit_code}#{x.signal_exit? ? ", #{x.exit_signal}" : ""}}} (#{x.full_cmd})"
       if DA_Process.success?(x.status)
         green! msg
       else
@@ -304,6 +270,41 @@ module DA_Dev
         }
       end
     end
+
+    class Proc
+
+      getter process  : Process
+      getter full_cmd : String
+      delegate :terminated?, to: @process
+      delegate :exit_signal, :exit_code, to: status
+      delegate :signal_exit?, to: status
+
+      def initialize(cmd_args : Array(String))
+        @full_cmd = cmd_args.join(" ")
+        cmd = cmd_args.shift
+        args = cmd_args
+        @process = Process.new(cmd, args, output: STDOUT, error: STDERR)
+        @is_ended = false
+      end # === def initialize
+
+      def status
+        process.wait
+      end
+
+      def kill
+        @process.kill unless terminated?
+        @process.wait
+      end
+
+      def mark_as_ended
+        @is_ended = terminated?
+      end
+
+      def ended?
+        @is_ended
+      end
+
+    end # === struct Proc
 
   end # === module Watch
 end # === module DA_Dev
