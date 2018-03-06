@@ -5,7 +5,7 @@ module DA_Dev
 
     DIVIDER = "# === "
 
-    def print_help(files : Array(String))
+    def compile(files : Array(String))
       app_name = File.basename(Dir.current)
       fin = Deque(String).new
       files.each { |f|
@@ -35,6 +35,12 @@ module DA_Dev
       end
       fin
     end # === def print_help
+
+    def print_help(*args)
+      compile(*args).each { |l|
+        puts l
+      }
+    end
 
   end # === module Documentation
 end # === module DA_Dev

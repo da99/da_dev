@@ -30,7 +30,7 @@ fin = case
       when ARGV.first? == "print-help"
         args = ARGV.dup
         args.shift
-        Documentation.print_help(args).each { |l| puts l }
+        Documentation.print_help(args)
 
       when first_two == "dev compile"
         DA_Dev::Dev.compile

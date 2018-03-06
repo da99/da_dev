@@ -9,13 +9,13 @@ def reset_docs
   FileUtils.rm_rf(dir)
 end
 
-describe "print_help" do
+describe ".compile" do
 
   it "bolds command name" do
     reset_docs { |dir|
       file = "#{dir}/a"
       File.write(file, "# === {{CMD}} help")
-      actual = DA_Dev::Documentation.print_help([file]).join
+      actual = DA_Dev::Documentation.compile([file]).join
       assert actual == "\n#{"da_dev".colorize.mode(:bold)} help\n"
     }
   end # === it "bolds command name"
@@ -24,7 +24,7 @@ describe "print_help" do
     reset_docs { |dir|
       file = "#{dir}/a"
       File.write(file, "# === {{CMD}} help\n# === a\n# === b c")
-      actual = DA_Dev::Documentation.print_help([file]).join
+      actual = DA_Dev::Documentation.compile([file]).join
       assert actual == "\n#{"da_dev".colorize.mode(:bold)} helpab c\n"
     }
   end # === it "continues rendering lines below command"
@@ -41,7 +41,7 @@ describe "print_help" do
          # === b
         "
       )
-      actual = DA_Dev::Documentation.print_help([file])
+      actual = DA_Dev::Documentation.compile([file])
       assert actual[1] == "#{"da_dev".colorize.mode(:bold)} help"
       assert actual[2]? == "a"
       assert actual[4]? == "#{"da_dev".colorize.mode(:bold)} show"
@@ -60,7 +60,7 @@ describe "print_help" do
          # === b
         "
       )
-      actual = DA_Dev::Documentation.print_help([file])
+      actual = DA_Dev::Documentation.compile([file])
       assert actual[1]? == "#{"da_dev".colorize.mode(:bold)} help"
       assert actual[2]? == "a"
       assert actual[3]? == "\n"
@@ -68,4 +68,4 @@ describe "print_help" do
     }
   end # === it "ignores a comment block if it does not contain: {{"
 
-end # === desc "print_help"
+end # === desc "compile"
