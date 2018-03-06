@@ -24,8 +24,13 @@ fin = case
       when full_cmd == "check"
         DA_Dev::Git.development_checkpoint
 
-      when full_cmd === "backup"
+      when full_cmd == "backup"
         DA_Dev::Backup.dir
+
+      when ARGV.first? == "print-help"
+        args = ARGV.dup
+        args.shift
+        Documentation.print_help(args).each { |l| puts l }
 
       when first_two == "dev compile"
         DA_Dev::Dev.compile

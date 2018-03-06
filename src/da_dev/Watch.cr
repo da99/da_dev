@@ -199,7 +199,7 @@ module DA_Dev
         if DA_Process.success?(stat)
           green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
         else
-          red! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
+          red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}}"
           return false
         end
 
