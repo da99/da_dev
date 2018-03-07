@@ -39,8 +39,11 @@ module DA_Dev
       end
 
       app_name = File.basename(Dir.current)
-      if File.exists?("tmp/out/dev")
-        system("tmp/out/dev", ["compile", file_name])
+      dev_bin = "tmp/out/dev"
+      if File.exists?(dev_bin)
+        args = ["compile", file_name]
+        orange! "=== {{#{dev_bin}}} {{#{args.join(' ')}}}"
+        DA_Process.success!(dev_bin, args)
       else
         if unknown_file
           orange! "=== {{Unknown file type}}: BOLD{{#{file_name}}}"
