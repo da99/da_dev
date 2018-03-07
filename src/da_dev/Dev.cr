@@ -19,7 +19,7 @@ module DA_Dev
       end
 
       Dir.mkdir_p(File.dirname tmp)
-      orange!("=== {{Compiling}}: #{src}")
+      orange!("=== {{Compiling}}: #{src} -> BOLD{{#{tmp}}}")
       system("crystal build #{src} -o #{tmp}")
       stat = $?
       if DA_Process.success?(stat)
@@ -40,7 +40,7 @@ module DA_Dev
 
       app_name = File.basename(Dir.current)
       if File.exists?("tmp/out/dev")
-        system("tmp/out/dev", ["file-change", file_name])
+        system("tmp/out/dev", ["compile", file_name])
       else
         if unknown_file
           orange! "=== {{Unknown file type}}: BOLD{{#{file_name}}}"
