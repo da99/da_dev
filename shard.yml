@@ -6,8 +6,8 @@ dependencies:
     github: da99/da_process.cr
   da_redis:
     github: da99/da_redis.cr
+  inspect_bang:
+    github: da99/inspect_bang.cr
 development_dependencies:
   da_spec:
     github: da99/da_spec.cr
-  inspect_bang:
-    github: da99/inspect_bang.cr

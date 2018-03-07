@@ -133,9 +133,9 @@ module DA_Dev
     end
 
     def run_cmd(args : Array(String))
-      args = args.map { |x|
-        (x == "__") ? app_name : x
-      }
+      if args.first? == "__"
+        args[0] == app_name
+      end
 
       cmd = args.shift
       case
