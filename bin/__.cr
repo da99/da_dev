@@ -16,6 +16,9 @@ fin = case
         # === {{CMD}} -h|--help|help
         DA_Dev::Documentation.print_help([__FILE__])
 
+      when full_cmd == "init"
+        DA_Dev::Dev.init
+
       when full_cmd == "deps"
         # === {{CMD}} deps
         DA_Dev.deps

@@ -4,6 +4,55 @@ module DA_Dev
     extend self
     extend DA_Dev
 
+    def init
+      repo_name = File.basename(Dir.current)
+      shard_name = File.basename(Dir.current, ".cr")
+      init_gitignore
+      Dir.mkdir_p("src")
+      Dir.mkdir_p("specs")
+      init_shard_yml(shard_name, repo_name)
+    end
+
+    def init_shard_yml(shard_name, repo_name)
+      default_contents = <<-EOF
+      name: #{shard_name}
+      version: 0.0.0
+      dependencies:
+        da_dev:
+          github: da99/da_dev
+      development_dependencies:
+        da_spec:
+          github: da99/da_spec.cr
+        da_process:
+          github: da99/da_process.cr
+      EOF
+      if File.exists?("shard.yml")
+        DA_Dev.deps
+      else
+        File.write("shard.yml", default_contents)
+        DA_Dev.green! "=== BOLD{{Wrote}}: {{shard.yml}}"
+      end
+    end # === def init_shard_yml
+
+    def init_gitignore
+      file = ".gitignore"
+      contents = if File.exists?(file)
+                   File.read(file).strip.split("\n")
+                 else
+                   [] of String
+                 end
+      contents = contents.concat(%w[/tmp/ /.js_packages/ /shard.lock /.shards/]).sort.uniq
+      contents.push("")
+      contents = contents.join('\n')
+      is_new = File.exists?(file)
+      File.write(file, contents)
+      if is_new
+        DA_Dev.green! "=== BOLD{{Wrote}}: {{#{file}}}"
+      else
+        DA_Dev.green! "=== BOLD{{Updated}}: {{#{file}}}"
+      end
+    end
+
     def src
       "dev/__.cr"
     end
