@@ -19,9 +19,6 @@ module DA_Dev
           pieces = l.split(/#{DIVIDER}/)
           next if pieces.size < 2
 
-          if !prev_line_was_doc
-            fin.push "\n"
-          end
           prev_line_was_doc = true
           pieces.shift
           l = pieces.join(DIVIDER)
@@ -31,6 +28,7 @@ module DA_Dev
         }
       }
       if !fin.empty?
+        fin.unshift "\n"
         fin.push "\n"
       end
       fin
