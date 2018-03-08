@@ -1,7 +1,4 @@
 
-ENV["SHARDS_INSTALL_PATH"] = File.join(Dir.current, "/.shards/.install")
-ENV["CRYSTAL_PATH"] = "/usr/lib/crystal:#{Dir.current}/.shards/.install"
-
 THIS_DIR = File.dirname(__DIR__)
 
 require "da_process"
