@@ -1,8 +1,8 @@
 
 THIS_DIR = File.dirname(__DIR__)
 
-require "da_process"
 require "../src/da_dev"
+require "da_process"
 
 extend DA_Dev
 

@@ -1,4 +1,7 @@
 
+ENV["SHARDS_INSTALL_PATH"] = File.join(Dir.current, "/.shards/.install")
+ENV["CRYSTAL_PATH"] = "/usr/lib/crystal:#{Dir.current}/.shards/.install"
+
 require "da_process"
 require "da_redis"
 require "inspect_bang"
