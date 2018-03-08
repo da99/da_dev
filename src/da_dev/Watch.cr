@@ -137,6 +137,11 @@ module DA_Dev
         args[0] == app_name
       end
 
+      full_cmd = args.join(' ')
+      if full_cmd[" compile"]?
+        system("clear")
+      end
+
       cmd = args.shift
       case
       when cmd == "run-file" && args.size == 1
@@ -226,7 +231,9 @@ module DA_Dev
     end # === def run_process_status
 
     def watch
+      Dir.mkdir_p(File.dirname(pid_file))
       this_pid = Process.pid
+
       begin
         old = File.read(pid_file).strip
         if !old.empty? && Process.exists?(old.to_i)

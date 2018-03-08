@@ -42,15 +42,15 @@ fin = case
       when full_cmd == "cli compile"
         DA_Dev::CLI.compile
 
+      when full_cmd == "specs compile run"
+        DA_Dev::Specs.compile
+        DA_Dev::Specs.run
+
       when full_cmd == "git status" || full_cmd == "status"
         DA_Dev::Git.status
 
       when full_cmd == "git update" || full_cmd == "update"
         DA_Dev::Git.update
-
-      when full_cmd == "specs compile run"
-        DA_Dev::Specs.compile
-        DA_Dev::Specs.run
 
       when full_cmd == "specs compile"
         DA_Dev::Specs.compile

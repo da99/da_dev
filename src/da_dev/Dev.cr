@@ -39,7 +39,7 @@ module DA_Dev
       end
 
       app_name = File.basename(Dir.current)
-      dev_bin = "tmp/out/dev"
+      dev_bin = "bin/#{app_name}"
       if File.exists?(dev_bin)
         args = ["compile", file_name]
         orange! "=== {{#{dev_bin}}} {{#{args.join(' ')}}}"
