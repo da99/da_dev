@@ -175,6 +175,7 @@ module DA_Dev
 
             end # === case
           }
+          last_result
         rescue e : Errno
           red! "!!! {{File not found}}: BOLD{{#{file}}}"
           return false
@@ -218,6 +219,7 @@ module DA_Dev
           green! "=== {{#{args.join ' '}}}"
         rescue e : DA_Dev::CLI::Error
           red! e
+          return false
         end
 
       when cmd == "run" && !args.empty?
@@ -234,6 +236,7 @@ module DA_Dev
 
       else
         red! "=== {{Unknown command}}: BOLD{{#{cmd} #{args.join(' ')}}} ==="
+        return false
 
       end # case
       true
