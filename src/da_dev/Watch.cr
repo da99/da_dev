@@ -222,21 +222,26 @@ module DA_Dev
         cmd = args.shift
         system(cmd, args)
         stat = $?
+        full_cmd = full_cmd(cmd, args)
         if DA_Process.success?(stat)
-          green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}}"
+          green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
         else
-          red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}}"
+          red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
           return false
         end
 
       else
-        red! "=== {{Unknown command}}: BOLD{{#{cmd} #{args.join(' ')}}} ==="
+        red! "=== {{Unknown command}}: BOLD{{#{full_cmd(cmd, args)}}} ==="
         return false
 
       end # case
       true
     rescue e
-      red! e
+      if e.is_a?(DA_Dev::Error)
+        red! e
+      else
+        red! "{{#{e.class}}}: BOLD{{#{e.message}}}"
+      end
       return false
     end # === def run
 

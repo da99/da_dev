@@ -68,6 +68,19 @@ module DA_Dev
     true
   end
 
+  def full_cmd(*args)
+    args.map { |x|
+      case x
+      when String
+        x
+      when Array
+        x.map(&.inspect).join(' ')
+      else
+        x.inspect
+      end
+    }.join(' ')
+  end
+
 end # === module DA_Dev
 
 require "./da_dev/*"
