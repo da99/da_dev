@@ -225,9 +225,9 @@ module DA_Dev
         system(cmd, args)
         stat = $?
         full_cmd = full_cmd(cmd, args)
-        if DA_Process.success?(stat)
-          green! "=== {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
-        else
+
+        # Only show progress output on error:
+        if !DA_Process.success?(stat)
           red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
           return false
         end
