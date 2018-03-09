@@ -3,6 +3,7 @@ module DA_Dev
   module Watch
 
     extend self
+    extend DA_Dev
 
     MTIMES    = {} of String => Int64
     PROCESSES = Deque(Proc).new
@@ -144,6 +145,11 @@ module DA_Dev
 
       cmd = args.shift
       case
+
+      when cmd == "bin" && args.first? == "compile"
+        args.shift
+        DA_Dev::Bin.compile(args)
+
       when cmd == "run-file" && args.size == 1
         file = args.shift
         begin
@@ -151,15 +157,23 @@ module DA_Dev
           File.read(file).strip.each_line { |l|
             next if l.strip.empty?
             args = l.split
-            if args.first? == "#"
+            case
+
+            when args.first? == "#"
               orange! "=== {{#{args.join " "}}}"
               next
-            end
-            if last_result
-              last_result = run_cmd(["run"].concat args)
-            else
+
+            when last_result != true
               red! "!!! {{Skipping}}: #{args.join ' '}"
-            end
+
+            when %w[run-file reload].includes?(args.first?)
+              red! "!!! {{Not allowed in a run-file}}: #{args.inspect}"
+              last_result = false
+
+            else
+              last_result = run_cmd(args)
+
+            end # === case
           }
         rescue e : Errno
           red! "!!! {{File not found}}: BOLD{{#{file}}}"
@@ -195,6 +209,16 @@ module DA_Dev
       when cmd == "PING" && args.empty?
         orange! "=== {{Running}}: #{cmd} ==="
         green! "=== PONG ==="
+
+
+      when cmd == "run" && args.first? == DA_Dev.bin_name
+        args.shift
+        begin
+          DA_Dev::CLI.run(args)
+          green! "=== {{#{args.join ' '}}}"
+        rescue e : DA_Dev::CLI::Error
+          red! e
+        end
 
       when cmd == "run" && !args.empty?
         bold! "=== {{#{args.join " "}}} (#{time})"
@@ -276,7 +300,7 @@ module DA_Dev
           run_process_status(x)
         }
       end
-    end
+    end # === def watch
 
     class Proc
 

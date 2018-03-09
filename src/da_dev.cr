@@ -13,6 +13,10 @@ module DA_Dev
 
   extend self
 
+  def self.bin_name
+    "da_dev"
+  end
+
   def self.deps
     DA_Process.success! "crystal deps update"
     DA_Process.success! "crystal deps prune"
@@ -33,6 +37,12 @@ module DA_Dev
   def orange!(str : String)
     STDERR.puts Colorize.orange(str)
   end
+
+  {% for x in %w[bold green red orange].map(&.id) %}
+    def {{x}}!(e : Exception)
+      {{x}}! DA_Dev::Colorize.highlight_exception(e)
+    end
+  {% end %}
 
   def exit!(stat : Process::Status)
     return false if DA_Process.success?(stat)

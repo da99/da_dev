@@ -7,6 +7,12 @@ module DA_Dev
     PATTERN = /\{\{([^\}]+)\}\}/
     BOLD_PATTERN = /BOLD{{([^\}]+)}}/
 
+    def highlight_exception(e : Exception) : String
+      msg = e.message || "[#{e.class}]"
+      msg = msg.sub(/[^\:]+\: /) { |x| "{{#{x.sub(": ", "")}}}: " }
+      "!!! #{msg}"
+    end
+
     def bold(raw : String)
       raw.gsub(PATTERN) { |raw, match|
         match.captures.first.colorize.mode(:bold)

@@ -2,6 +2,7 @@
 module DA_Dev
   module Backup
     extend self
+    extend DA_Dev
 
     def dir
       config = "config/dev/repos"
