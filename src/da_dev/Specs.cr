@@ -20,7 +20,7 @@ module DA_Dev
       if DA_Process.success?(stat)
         green! "=== {{DONE}}: compiling specs ==="
       else
-        exit! stat
+        raise Error.new("Specs failed to build: exit #{stat.exit_code}")
       end
       stat
     end
@@ -32,8 +32,10 @@ module DA_Dev
 
       system(tmp, args)
       stat = $?
-      if !DA_Process.success?(stat)
-        exit! stat
+      if DA_Process.success?(stat)
+        green! "=== {{DONE}}: BOLD{{spec run}} ==="
+      else
+        raise Error.new("Specs failed: exit #{stat.exit_code}")
       end
       stat
     end # === def run

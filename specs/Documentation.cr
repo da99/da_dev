@@ -44,8 +44,8 @@ describe ".compile" do
       actual = DA_Dev::Documentation.compile([file])
       assert actual[1] == "#{"da_dev".colorize.mode(:bold)} help"
       assert actual[2]? == "a"
-      assert actual[4]? == "#{"da_dev".colorize.mode(:bold)} show"
-      assert actual[5]? == "b"
+      assert actual[3]? == "#{"da_dev".colorize.mode(:bold)} show"
+      assert actual[4]? == "b"
     }
   end # === it "ignores lines between comment blocks"
 

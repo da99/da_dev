@@ -134,6 +134,7 @@ module DA_Dev
     end
 
     def run_cmd(args : Array(String))
+
       if args.first? == "__"
         args[0] == app_name
       end
