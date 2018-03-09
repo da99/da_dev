@@ -188,7 +188,7 @@ module DA_Dev
         system("reset")
 
       when cmd == "#"
-        orange! "=== {{Skipping}}: #{cmd} #{args.join " "}"
+        orange! "=== {{Skipping}}: #{full_cmd cmd, args}"
 
       when cmd == "reload" && args.empty?
         PROCESSES.each { |x|
@@ -202,7 +202,7 @@ module DA_Dev
         Process.exec(bin_path, ARGV)
 
       when cmd == "proc"
-        orange! "=== {{Process}}: BOLD{{#{args.join(" ")}}}"
+        orange! "=== {{Process}}: BOLD{{#{full_cmd args}}}"
         x = Proc.new(args)
         PROCESSES.push x
         x
@@ -215,10 +215,12 @@ module DA_Dev
       when cmd == "run" && args.first? == DA_Dev.bin_name
         args.shift
         DA_Dev::CLI.run(args)
-        green! "=== {{#{args.join ' '}}}"
+        # No other message to user needed here,
+        # because CLI.run (most likely) already
+        # printed something
 
       when cmd == "run" && !args.empty?
-        bold! "=== {{#{args.join " "}}} (#{time})"
+        bold! "=== {{#{full_cmd args}}} (#{time})"
         cmd = args.shift
         system(cmd, args)
         stat = $?

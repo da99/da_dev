@@ -74,7 +74,14 @@ module DA_Dev
       when String
         x
       when Array
-        x.map(&.inspect).join(' ')
+        x.map { |x|
+          case x
+          when String
+            x
+          else
+            x.inspect
+          end
+        }.join(' ')
       else
         x.inspect
       end
