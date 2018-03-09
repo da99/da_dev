@@ -13,8 +13,7 @@ module DA_Dev
       if File.exists?(bin)
         mime = DA_Process.output("file --mime #{bin}").split[1].split("/").first
         if mime != "application"
-          STDERR.puts "!!! Non-binary file already exists: #{bin}"
-          exit 1
+          raise Error.new " Non-binary file already exists: #{bin}"
         end
       end
 
@@ -26,7 +25,11 @@ module DA_Dev
       fin_bin = is_tmp ? tmp : bin
       puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{fin_bin}}}"
       system("crystal", args)
-      DA_Dev.exit! $?
+
+      if !DA_Process.success?($?)
+        Error.new("Failed: crystal #{args.join ' '}")
+      end
+
       File.rename(tmp, bin) unless is_tmp
       puts DA_Dev::Colorize.green "=== {{Done}}: #{bin}"
     end

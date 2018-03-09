@@ -9,6 +9,18 @@ require "inspect_bang"
 DA_Redis.port ENV["DEV_REDIS_PORT"].to_i32
 
 module DA_Dev
+
+  # =============================================================================
+  # Exceptions:
+  # =============================================================================
+
+  class Error < Exception
+  end
+
+  # =============================================================================
+  # Module:
+  # =============================================================================
+
   CRYSTAL_BIN = "crystal"
 
   extend self
@@ -21,6 +33,10 @@ module DA_Dev
     DA_Process.success! "crystal deps update"
     DA_Process.success! "crystal deps prune"
   end # === def deps
+
+  # =============================================================================
+  # Instance:
+  # =============================================================================
 
   def bold!(str : String)
     puts Colorize.bold(str)

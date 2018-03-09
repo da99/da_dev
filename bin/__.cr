@@ -6,7 +6,7 @@ require "da_process"
 
 begin
   DA_Dev::CLI.run(ARGV)
-rescue e : DA_Dev::CLI::Error
+rescue e : DA_Dev::Error
   DA_Dev.red! e
   exit 1
 end

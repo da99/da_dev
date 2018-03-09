@@ -214,13 +214,8 @@ module DA_Dev
 
       when cmd == "run" && args.first? == DA_Dev.bin_name
         args.shift
-        begin
-          DA_Dev::CLI.run(args)
-          green! "=== {{#{args.join ' '}}}"
-        rescue e : DA_Dev::CLI::Error
-          red! e
-          return false
-        end
+        DA_Dev::CLI.run(args)
+        green! "=== {{#{args.join ' '}}}"
 
       when cmd == "run" && !args.empty?
         bold! "=== {{#{args.join " "}}} (#{time})"
@@ -240,6 +235,9 @@ module DA_Dev
 
       end # case
       true
+    rescue e : DA_Dev::Error
+      red! e
+      return false
     end # === def run
 
     def run_process_status(x : Proc)
