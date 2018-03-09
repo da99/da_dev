@@ -235,7 +235,7 @@ module DA_Dev
 
       end # case
       true
-    rescue e : DA_Dev::Error
+    rescue e
       red! e
       return false
     end # === def run
