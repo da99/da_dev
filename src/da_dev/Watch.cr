@@ -292,7 +292,7 @@ module DA_Dev
 
       Dir.mkdir_p("tmp/out")
 
-      green!("-=-= BOLD{{Watching}} @ #{time} #{"-=" * 23}")
+      green!("-=-= BOLD{{Watching}}: #{File.basename Dir.current} @ #{time} #{"-=" * 23}")
       is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
 
       while keep_running
