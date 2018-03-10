@@ -130,7 +130,7 @@ module DA_Dev
         end
 
       else
-        raise Error.new("Invalid arguments: #{origin.map(&.inspect).join " "}")
+        raise Error.new("Invalid arguments: #{full_cmd origin}")
       end
       true
     end # === def run

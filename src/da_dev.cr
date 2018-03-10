@@ -15,7 +15,29 @@ module DA_Dev
   # =============================================================================
 
   class Error < Exception
-  end
+
+    @stat : Process::Status? = nil
+
+    def initialize(@message)
+    end
+
+    def initialize(@stat, @message)
+    end
+
+    def exit_code?
+      stat = @stat
+      !stat.nil?
+    end
+
+    def exit_code
+      stat = @stat
+      if !stat.nil?
+        return stat.exit_code
+      end
+      1
+    end
+
+  end # === class Error
 
   # =============================================================================
   # Module:

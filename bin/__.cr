@@ -8,5 +8,8 @@ begin
   DA_Dev::CLI.run(ARGV)
 rescue e : DA_Dev::Error
   DA_Dev.red! e
+  if e.exit_code?
+    exit e.exit_code
+  end
   exit 1
 end

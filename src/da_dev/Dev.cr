@@ -128,7 +128,11 @@ module DA_Dev
       if File.exists?(dev_bin)
         args = ["compile", file_name]
         orange! "=== {{#{dev_bin}}} {{#{args.join(' ')}}}"
-        DA_Process.success!(dev_bin, args)
+        system(dev_bin, args)
+        stat = $?
+        if !DA_Process.success?(stat)
+          raise Error.new(stat, "Failed: #{full_cmd dev_bin, args} (exit: #{stat.exit_code})")
+        end
       else
         if unknown_file
           orange! "=== {{Unknown file type}}: BOLD{{#{file_name}}}"

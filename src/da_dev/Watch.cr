@@ -223,11 +223,11 @@ module DA_Dev
       when cmd == "run" && !args.empty?
         bold! "=== {{#{full_cmd args}}} (#{time})"
         cmd = args.shift
-        system(cmd, args)
-        stat = $?
         full_cmd = full_cmd(cmd, args)
 
         # Only show progress output on error:
+        system(cmd, args)
+        stat = $?
         if !DA_Process.success?(stat)
           red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
           return false
