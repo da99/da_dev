@@ -105,7 +105,7 @@ module DA_Dev
 
       Dir.mkdir_p(File.dirname tmp)
       orange!("=== {{Compiling}}: #{src} -> BOLD{{#{tmp}}}")
-      system("crystal build #{src} -o #{tmp}")
+      system("#{CRYSTAL_BIN} build #{src} -o #{tmp}")
       stat = $?
       if DA_Process.success?(stat)
         green!("=== {{DONE}}: #{tmp} ===")

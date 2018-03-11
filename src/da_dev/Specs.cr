@@ -15,7 +15,7 @@ module DA_Dev
     def compile
       Dir.mkdir_p(File.dirname tmp)
       STDERR.puts Colorize.orange "=== {{Compiling}}: specs ==="
-      system("crystal", "build #{src} -o tmp/out/specs".split)
+      system(CRYSTAL_BIN, "build #{src} -o tmp/out/specs".split)
       stat = $?
       if DA_Process.success?(stat)
         green! "=== {{DONE}}: compiling specs ==="

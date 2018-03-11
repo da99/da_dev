@@ -52,8 +52,8 @@ module DA_Dev
   end
 
   def self.deps
-    DA_Process.success! "crystal deps update"
-    DA_Process.success! "crystal deps prune"
+    DA_Process.success! "#{CRYSTAL_BIN} deps update"
+    DA_Process.success! "#{CRYSTAL_BIN} deps prune"
   end # === def deps
 
   # =============================================================================

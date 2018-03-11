@@ -24,10 +24,10 @@ module DA_Dev
       args = "build #{src} -o #{tmp}".split.concat(args)
       fin_bin = is_tmp ? tmp : bin
       puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{fin_bin}}}"
-      system("crystal", args)
+      system(CRYSTAL_BIN, args)
 
       if !DA_Process.success?($?)
-        Error.new("Failed: crystal #{args.join ' '}")
+        Error.new("Failed: #{CRYSTAL_BIN} #{args.join ' '}")
       end
 
       File.rename(tmp, bin) unless is_tmp

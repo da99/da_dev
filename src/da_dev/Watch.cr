@@ -212,14 +212,6 @@ module DA_Dev
         orange! "=== {{Running}}: #{cmd} ==="
         green! "=== PONG ==="
 
-
-      when cmd == "run" && args.first? == DA_Dev.bin_name
-        args.shift
-        DA_Dev::CLI.run(args)
-        # No other message to user needed here,
-        # because CLI.run (most likely) already
-        # printed something
-
       when cmd == "run" && !args.empty?
         bold! "=== {{#{full_cmd args}}} (#{time})"
         cmd = args.shift
