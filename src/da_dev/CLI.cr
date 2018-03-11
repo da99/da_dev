@@ -25,6 +25,9 @@ module DA_Dev
         # === {{CMD}} -h|--help|help
         DA_Dev::Documentation.print_help([__FILE__])
 
+      when cmd == "crystal" && !args.empty?
+        Process.exec(CRYSTAL_BIN, args)
+
       when full_cmd == "init"
         # === {{CMD}} init
         DA_Dev::Dev.init
