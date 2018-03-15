@@ -42,6 +42,9 @@ module DA_Dev
           DA_Dev::Dev.compile(x)
         }
 
+      when full_cmd == "postgres setup"
+        DA_Dev::Postgres.setup
+
       when full_cmd == "check"
         # === {{CMD}} check
         DA_Dev::Git.development_checkpoint
