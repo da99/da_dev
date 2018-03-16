@@ -37,3 +37,23 @@ For `watch` files:
   # bin compile
   PING
 ```
+
+Postgresql Development:
+=======================
+
+The following are for development purposes only.
+
+```sh
+  sudo -u postgres psql -U postgres
+  sudo -u postgres createuser $USER \
+    --connection-limit=3      \
+    --no-createdb             \
+    --no-createrole           \
+    --no-superuser            \
+    --encrypted               \
+    --login
+
+  sudo -u postgres createdb  --owner=$USER my_db_name
+
+```
+

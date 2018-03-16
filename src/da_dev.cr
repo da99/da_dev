@@ -6,8 +6,6 @@ require "da_process"
 require "da_redis"
 require "inspect_bang"
 
-DA_Redis.port ENV["DEV_REDIS_PORT"].to_i32
-
 module DA_Dev
 
   THIS_DIR = File.expand_path("#{__DIR__}/..")

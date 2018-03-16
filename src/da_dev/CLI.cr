@@ -57,6 +57,11 @@ module DA_Dev
         # === {{CMD}} print-help file1 file2 ...
         Documentation.print_help(args)
 
+      when cmd == "create" && args.first? == "user" && args.size == 2
+        # === {{CMD}} create user NAME
+        args.shift
+        OS.create_user(args.shift)
+
       when full_cmd == "dev compile"
         # === {{CMD}} dev compile
         DA_Dev::Dev.compile
