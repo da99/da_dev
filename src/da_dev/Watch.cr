@@ -256,7 +256,6 @@ module DA_Dev
     end # === def run_process_status
 
     def watch
-      DA_Redis.port ENV["DEV_REDIS_PORT"].to_i32
       Dir.mkdir_p(File.dirname(pid_file))
       this_pid = Process.pid
 

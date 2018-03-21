@@ -2,6 +2,10 @@
 ENV["SHARDS_INSTALL_PATH"] = File.join(Dir.current, "/.shards/.install")
 ENV["CRYSTAL_PATH"] = "/usr/lib/crystal:#{Dir.current}/.shards/.install"
 
+if ENV["DEV_REDIS_PORT"]?
+  DA_Redis.port ENV["DEV_REDIS_PORT"].to_i32
+end
+
 require "da_process"
 require "da_redis"
 require "inspect_bang"
