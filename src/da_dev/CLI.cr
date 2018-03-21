@@ -62,6 +62,11 @@ module DA_Dev
         args.shift
         OS.create_user(args.shift)
 
+      when cmd == "create" && args.first? == "system-user" && args.size == 2
+        # === {{CMD}} create system-user NAME
+        args.shift
+        OS.create_system_user(args.shift)
+
       when full_cmd == "dev compile"
         # === {{CMD}} dev compile
         DA_Dev::Dev.compile
