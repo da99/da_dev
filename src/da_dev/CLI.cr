@@ -42,6 +42,11 @@ module DA_Dev
           DA_Dev::Dev.compile(x)
         }
 
+      when full_cmd == "pgadmin3"
+        # === {{CMD}} pgadmin3 # log in as production_user
+        ENV["HOME"] = "/progs/production_user"
+        Process.exec("sudo", "-u production_user --preserve-env pgadmin3".split)
+
       when full_cmd == "postgres setup"
         DA_Dev::Postgres.setup
 
