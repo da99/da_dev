@@ -147,6 +147,16 @@ module DA_Dev
       cmd = args.shift
       case
 
+      when cmd == "specs" && args.first? == "run"
+        args.shift
+        DA_Dev::Specs.run(args)
+
+      when cmd == "specs" && args.first? == "compile" && args[1]? == "run"
+        args.shift
+        args.shift
+        DA_Dev::Specs.compile
+        DA_Dev::Specs.run(args)
+
       when cmd == "bin" && args.first? == "compile"
         args.shift
         DA_Dev::Bin.compile(args)
