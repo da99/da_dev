@@ -28,6 +28,9 @@ module DA_Dev
       when cmd == "crystal" && !args.empty?
         Process.exec(CRYSTAL_BIN, args)
 
+      when full_cmd == "install"
+        # === {{CMD}}
+
       when full_cmd == "init"
         # === {{CMD}} init
         DA_Dev::Dev.init
