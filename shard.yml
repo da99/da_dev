@@ -1,6 +1,6 @@
 ---
 name: da_dev
-version: 0.3.0
+version: 0.3.1
 dependencies:
   da_process:
     github: da99/da_process.cr
