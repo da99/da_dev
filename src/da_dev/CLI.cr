@@ -82,7 +82,12 @@ module DA_Dev
       when first_two == "bin compile"
         # === {{CMD}} bin compile [my optional args]
         args.shift
-        DA_Dev::Bin.compile(args)
+        if File.file?("sh/build") # File.dirname(Process.executable_path) == "da_dev" && 
+          STDERR.puts DA_Dev::Colorize.orange "=== {{Running}}: sh/build"
+          Process.exec("sh/build")
+        else
+          DA_Dev::Bin.compile(args)
+        end
 
       when full_cmd == "cli compile"
         DA_Dev::CLI.compile

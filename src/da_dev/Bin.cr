@@ -26,9 +26,7 @@ module DA_Dev
       puts DA_Dev::Colorize.orange "=== {{Compiling}}: #{CRYSTAL_BIN} #{args.join " "} --> BOLD{{#{fin_bin}}}"
       system(CRYSTAL_BIN, args)
 
-      if !DA_Process.success?($?)
-        Error.new("Failed: #{CRYSTAL_BIN} #{args.join ' '}")
-      end
+      DA_Process.success!($?)
 
       File.rename(tmp, bin) unless is_tmp
       puts DA_Dev::Colorize.green "=== {{Done}}: #{bin}"
