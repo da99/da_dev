@@ -56,8 +56,16 @@ module DA_Dev
   end
 
   def self.deps
+    shard_file = "shard.lock"
+    shard_lock = File.exists?(shard_file) ? File.read(shard_file) : ""
     DA_Process.success! "#{CRYSTAL_BIN} deps update"
     DA_Process.success! "#{CRYSTAL_BIN} deps prune"
+    new_shard_lock = File.read(shard_file)
+    if shard_lock != new_shard_lock
+      CLI.run("bin compile".split)
+    else
+      STDERR.puts "=== Skipping bin compile. shard.lock the same."
+    end
   end # === def deps
 
   # =============================================================================
