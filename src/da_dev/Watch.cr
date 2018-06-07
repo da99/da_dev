@@ -110,6 +110,8 @@ module DA_Dev
     end # === def run_last_file
 
     def run_file(file_name : String)
+      dir = Dir.current.sub("/tmp/out", "")
+      Dir.cd(dir)
       content = begin
                   File.read(file_name).strip
                 rescue e : Errno
