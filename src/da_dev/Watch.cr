@@ -4,9 +4,10 @@ module DA_Dev
 
     extend self
     extend DA_Dev
+    CMD_ERRORS = [] of Int32 | String
 
     MTIMES    = {} of String => Int64
-    PROCESSES = Deque(Proc).new
+    PROCESSES = {} of Int32 => Process
 
     def time
       Time.now.to_s("%r")
@@ -204,20 +205,17 @@ module DA_Dev
         orange! "=== {{Skipping}}: #{full_cmd cmd, args}"
 
       when cmd == "reload" && args.empty?
-        PROCESSES.each { |x|
-          run_process_status(x)
-          next if x.ended?
-          orange! "=== {{Killing}}: #{x.full_cmd}"
-          x.kill
-          run_process_status(x)
-        }
+        kill_procs
+        run_process_status
         File.delete(pid_file) if File.exists?(pid_file)
         Process.exec(bin_path, ARGV)
 
       when cmd == "proc"
         orange! "=== {{Process}}: BOLD{{#{full_cmd args}}}"
-        x = Proc.new(args)
-        PROCESSES.push x
+        # args = "echo a".split
+        x = Process.new(args.shift, args, output: STDOUT, input: STDIN, error: STDERR)
+        PROCESSES[x.pid] = x
+        STDERR.puts "=== New process: #{x.pid}"
         x
 
       when cmd == "PING" && args.empty?
@@ -252,19 +250,17 @@ module DA_Dev
       return false
     end # === def run
 
-    def run_process_status(x : Proc)
-      return false if x.ended? || !x.terminated?
-
-      x.mark_as_ended
-
-      msg = "=== {{Process}}: BOLD{{exit #{x.exit_code}#{x.signal_exit? ? ", #{x.exit_signal}" : ""}}} (#{x.full_cmd})"
-      if DA_Process.success?(x.status)
-        green! msg
-      else
-        red! msg
-      end
-
-      true
+    def run_process_status
+      PROCESSES.each { |pid, x|
+        if defunct?(pid)
+          STDERR.puts "=== Process defunct: #{pid}"
+          PROCESSES.delete pid
+        end
+        if x.terminated?
+          STDERR.puts "=== Process terminated: #{pid}"
+          PROCESSES.delete pid
+        end
+      }
     end # === def run_process_status
 
     def watch
@@ -283,72 +279,101 @@ module DA_Dev
       File.write(pid_file, this_pid)
 
       system("reset")
-      DA_Redis.connect { |r|
-        r.send("DEL", key)
-        r.send("DEL", key("error"))
-      }
 
       keep_running = true
-      Signal::INT.trap do
-        keep_running = false
-        Signal::INT.reset
-      end
 
       Dir.mkdir_p("tmp/out")
 
       green!("-=-= BOLD{{Watching}}: #{File.basename Dir.current} @ #{time} #{"-=" * 23}")
       is_watching_this = File.expand_path(Dir.current) == File.expand_path(File.join(Dir.current, "../.."))
 
-      while keep_running
-        sleep 0.1
+      files = {} of String => Time?
+      3.times { |i|
+        x = i + 1
+        f = "tmp/out/da_dev_run_#{x}"
+        files[f] = File.exists?(f) ? mtime(f) : nil
+      }
 
-        while e = shift(key("error"))
-          red! e
+      spawn {
+        while keep_running
+          run_process_status
+          sleep 1
         end
+      }
 
-        cmd = shift
-        run_cmd(cmd.split) if cmd
+      spawn {
+        while keep_running
+          files.each { |file, old_time|
+            next if !File.file?(file)
+            mtime = mtime(file)
+            next if mtime == old_time
+            files[file] = mtime
+            kill_procs
+            File.read(file).each_line { |cmd|
+              next if cmd.strip.empty?
+              if !CMD_ERRORS.empty?
+                STDERR.puts "=== Skipping #{cmd} because of previous errors."
+                next
+              end
+              run_cmd(cmd.split)
+            }
+            CMD_ERRORS.clear
+          } # files.each
+          sleep 0.5
+        end # while
+      }
 
-        PROCESSES.each { |x|
-          run_process_status(x)
-        }
-      end
+      sleep
     end # === def watch
 
-    class Proc
+    def mtime(file)
+      File.stat(file).mtime
+    end # === def mtime
 
-      getter process  : Process
-      getter full_cmd : String
-      delegate :terminated?, to: @process
-      delegate :exit_signal, :exit_code, to: status
-      delegate :signal_exit?, to: status
+    def kill_procs
+      PROCESSES.each { |pid, x|
+        if process_exists?(pid)
+          STDERR.puts "=== Killing: #{pid}"
+          x.kill
+        else
+          STDERR.puts "=== Killed: #{pid}"
+        end
+      }
+      3.times { |x|
+        break if !process_still_running?
+        sleep 1
+      }
+      PROCESSES.each { |pid, x|
+        if defunct?(pid)
+          STDERR.puts "!!! DEFUNCT: #{pid}"
+        end
+        if process_exists?(pid)
+          STDERR.puts "!!! Still running: #{pid}"
+        end
+        if !Process.exists?(pid)
+          STDERR.puts "=== Terminated: #{pid}"
+        end
+      }
+    end
 
-      def initialize(cmd_args : Array(String))
-        @full_cmd = cmd_args.join(" ")
-        cmd = cmd_args.shift
-        args = cmd_args
-        @process = Process.new(cmd, args, output: STDOUT, error: STDERR)
-        @is_ended = false
-      end # === def initialize
+    def process_exists?(pid : Int32)
+      return false if !Process.exists?(pid) || defunct?(pid)
+      Process.exists?(pid)
+    end # === def process_exists?
 
-      def status
-        process.wait
-      end
+    def defunct?(pid : Int32)
+      data = IO::Memory.new
+      Process.new("ps", "--no-headers --pid #{pid}".split, output: data, error: data)
+      sleep 0.1
+      data.rewind
+      line = data.to_s
+      line["<defunct>"]?
+    end
 
-      def kill
-        @process.kill unless terminated?
-        @process.wait
-      end
-
-      def mark_as_ended
-        @is_ended = terminated?
-      end
-
-      def ended?
-        @is_ended
-      end
-
-    end # === struct Proc
+    def process_still_running?
+      return false if PROCESSES.empty?
+      PROCESSES.any? { |pid, x| process_exists?(pid) }
+    end
 
   end # === module Watch
 end # === module DA_Dev

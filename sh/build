@@ -10,8 +10,8 @@ cd "$( dirname "$(realpath "$0")" )/.."
 echo "=== in $PWD" >&2
 export SHARDS_INSTALL_PATH="$PWD/.shards/.install"
 export CRYSTAL_PATH="/usr/lib/crystal:$PWD/.shards/.install"
-crystal deps update
-crystal deps prune
+# crystal deps update
+# crystal deps prune
 mkdir -p tmp/out
 set -x
 crystal build -o tmp/out/da_dev.tmp bin/__.cr
