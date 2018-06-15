@@ -232,7 +232,7 @@ module DA_Dev
         stat = $?
         if !DA_Process.success?(stat)
           red! "!!! {{EXIT}}: BOLD{{#{stat.exit_code}}} (#{full_cmd})"
-          return false
+          return :error
         end
 
       else
@@ -315,7 +315,7 @@ module DA_Dev
                 STDERR.puts "=== Skipping #{cmd} because of previous errors."
                 next
               end
-              run_cmd(cmd.split)
+              break if run_cmd(cmd.split) == :error
             }
             CMD_ERRORS.clear
           } # files.each
